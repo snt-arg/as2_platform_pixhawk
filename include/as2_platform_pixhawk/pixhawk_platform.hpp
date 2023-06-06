@@ -54,6 +54,7 @@
 #include <px4_msgs/msg/vehicle_control_mode.hpp>
 #include <px4_msgs/msg/vehicle_odometry.hpp>
 #include <px4_msgs/msg/vehicle_rates_setpoint.hpp>
+#include <px4_msgs/msg/vehicle_status.hpp>
 
 #include <as2_core/utils/frame_utils.hpp>
 #include "as2_core/aerial_platform.hpp"
@@ -116,6 +117,7 @@ private:
   rclcpp::Subscription<px4_msgs::msg::TimesyncStatus>::SharedPtr px4_timesync_sub_;
   rclcpp::Subscription<px4_msgs::msg::BatteryStatus>::SharedPtr px4_battery_sub_;
   rclcpp::Subscription<px4_msgs::msg::SensorGps>::SharedPtr px4_gps_sub_;
+  rclcpp::Subscription<px4_msgs::msg::VehicleStatus>::SharedPtr px4_vehicle_status_sub_;
 
   // PX4 publishers
   rclcpp::Publisher<px4_msgs::msg::ManualControlSwitches>::SharedPtr
@@ -139,6 +141,7 @@ private:
   void PX4publishVisualOdometry();
 
 private:
+  bool offboard_intention_   = false;
   bool manual_from_operator_ = false;
   bool set_disarm_           = false;
   nav_msgs::msg::Odometry odometry_msg_;
@@ -171,6 +174,7 @@ private:
   void px4VehicleControlModeCallback(const px4_msgs::msg::VehicleControlMode::SharedPtr msg);
   void px4BatteryCallback(const px4_msgs::msg::BatteryStatus::SharedPtr msg);
   void px4GpsCallback(const px4_msgs::msg::SensorGps::SharedPtr msg);
+  void px4VehicleStatusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg);
 };
 
 #endif  // PIXHAWK_PLATFORM_HPP_

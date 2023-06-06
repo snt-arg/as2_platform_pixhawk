@@ -94,6 +94,10 @@ PixhawkPlatform::PixhawkPlatform() : as2::AerialPlatform() {
       std::bind(&PixhawkPlatform::px4odometryCallback, this, std::placeholders::_1));
   tf_handler_ = std::make_shared<as2::tf::TfHandler>(this);
 
+  px4_vehicle_status_sub_ = this->create_subscription<px4_msgs::msg::VehicleStatus>(
+      "/fmu/out/vehicle_status", rclcpp::SensorDataQoS(),
+      std::bind(&PixhawkPlatform::px4VehicleStatusCallback, this, std::placeholders::_1));
+
   if (external_odom_) {
     // In real flights, the odometry is published by the onboard computer.
     external_odometry_sub_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
@@ -361,13 +365,15 @@ bool PixhawkPlatform::ownSendCommand() {
       return false;
   }
 
-  if (px4_offboard_control_mode_.attitude) {
-    this->PX4publishAttitudeSetpoint();
-  } else if (px4_offboard_control_mode_.body_rate) {
-    this->PX4publishRatesSetpoint();
-  } else if (px4_offboard_control_mode_.position || px4_offboard_control_mode_.velocity ||
-             px4_offboard_control_mode_.acceleration) {
-    this->PX4publishTrajectorySetpoint();
+  if (offboard_intention_ || getOffboardMode()) {
+    if (px4_offboard_control_mode_.attitude) {
+      this->PX4publishAttitudeSetpoint();
+    } else if (px4_offboard_control_mode_.body_rate) {
+      this->PX4publishRatesSetpoint();
+    } else if (px4_offboard_control_mode_.position || px4_offboard_control_mode_.velocity ||
+               px4_offboard_control_mode_.acceleration) {
+      this->PX4publishTrajectorySetpoint();
+    }
   }
   return true;
 }
@@ -789,6 +795,20 @@ void PixhawkPlatform::px4BatteryCallback(const px4_msgs::msg::BatteryStatus::Sha
   // }
 
   battery_sensor_ptr_->updateData(battery_msg);
+}
+
+/// @brief See documentation: https://docs.px4.io/v1.14/en/msg_docs/vehicle_status.html
+/// @param msg vehicle status
+void PixhawkPlatform::px4VehicleStatusCallback(const px4_msgs::msg::VehicleStatus::SharedPtr msg) {
+  bool offboard_intention =
+      msg->nav_state_user_intention & px4_msgs::msg::VehicleStatus::NAVIGATION_STATE_OFFBOARD;
+
+  if (offboard_intention != offboard_intention_) {
+    RCLCPP_INFO(this->get_logger(), "OFFBOARD intention changed %i -> %i", offboard_intention_,
+                offboard_intention);
+  }
+
+  offboard_intention_ = offboard_intention;
 }
 
 bool PixhawkPlatform::getFlagSimulationMode() {
