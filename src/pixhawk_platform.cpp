@@ -533,7 +533,7 @@ void PixhawkPlatform::PX4publishVisualOdometry() {
   // FLU --> FRD
   px4_visual_odometry_msg_.position[0] = odometry_msg_.pose.pose.position.x;
   px4_visual_odometry_msg_.position[1] = -odometry_msg_.pose.pose.position.y;
-  px4_visual_odometry_msg_.position[2] = -odometry_msg_.pose.pose.position.x;
+  px4_visual_odometry_msg_.position[2] = -odometry_msg_.pose.pose.position.z;
 
   // Quaternion rotation from FRD body frame to refernce frame
   Eigen::Quaterniond q_baselink(
