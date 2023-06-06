@@ -125,7 +125,7 @@ PixhawkPlatform::PixhawkPlatform() : as2::AerialPlatform() {
       "fmu/vehicle_visual_odometry/in", rclcpp::SensorDataQoS());
 
   px4_manual_control_switches_pub_ = this->create_publisher<px4_msgs::msg::ManualControlSwitches>(
-      "fmu/in/manual_control_switches", rclcpp::SensorDataQoS());
+      "/fmu/in/manual_control_switches", rclcpp::SensorDataQoS());
 }
 
 void PixhawkPlatform::configureSensors() {
