@@ -535,17 +535,10 @@ void PixhawkPlatform::PX4publishVisualOdometry() {
   px4_visual_odometry_msg_.position[1] = -odometry_msg_.pose.pose.position.y;
   px4_visual_odometry_msg_.position[2] = -odometry_msg_.pose.pose.position.z;
 
-  // Quaternion rotation from FRD body frame to refernce frame
-  Eigen::Quaterniond q_baselink(
+  // FLU --> FRD
+  Eigen::Quaterniond q_aircraft = {
       odometry_msg_.pose.pose.orientation.w, odometry_msg_.pose.pose.orientation.x,
-      odometry_msg_.pose.pose.orientation.y, odometry_msg_.pose.pose.orientation.z);
-  // BASELINK --> AIRCRAFT (FLU --> FRD)
-
-  // TODO: px4_ros_com done
-  Eigen::Quaterniond q_aircraft = q_baselink * q_baselink_to_aircraft_;
-  // Eigen::Quaterniond q_aircraft =
-  // px4_ros_com::frame_transforms::transform_orientation(q_baselink,
-  // px4_ros_com::frame_transforms::StaticTF::BASELINK_TO_AIRCRAFT);
+      -odometry_msg_.pose.pose.orientation.y, -odometry_msg_.pose.pose.orientation.z};
 
   px4_visual_odometry_msg_.q[0] = q_aircraft.w();
   px4_visual_odometry_msg_.q[1] = q_aircraft.x();
